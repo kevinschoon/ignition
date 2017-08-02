@@ -34,7 +34,7 @@ func main() {
 		clearCache   bool
 		configCache  string
 		fetchTimeout time.Duration
-		oem          oem.Name
+		oem          oem.Options
 		root         string
 		stage        stages.Name
 		version      bool
@@ -43,7 +43,8 @@ func main() {
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
-	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
+	flag.StringVar(&flags.oem.Name, "oem", "", "oem configuration")
+	flag.StringVar(&flags.oem.Platform, "platform", "coreos", "ignition platform [coreos]")
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
@@ -55,13 +56,18 @@ func main() {
 		return
 	}
 
-	if flags.oem == "" {
+	if flags.oem.Name == "" {
 		fmt.Fprint(os.Stderr, "'--oem' must be provided\n")
 		os.Exit(2)
 	}
 
 	if flags.stage == "" {
 		fmt.Fprint(os.Stderr, "'--stage' must be provided\n")
+		os.Exit(2)
+	}
+
+	if _, ok := oem.Get(flags.oem); !ok {
+		fmt.Fprintf(os.Stderr, "bad oem configuration: %s\n", flags.oem)
 		os.Exit(2)
 	}
 
@@ -76,7 +82,7 @@ func main() {
 		}
 	}
 
-	oemConfig := oem.MustGet(flags.oem.String())
+	oemConfig := oem.MustGet(flags.oem)
 	engine := exec.Engine{
 		Root:         flags.root,
 		FetchTimeout: flags.fetchTimeout,
