@@ -19,6 +19,7 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/oem/coreos"
+	"github.com/coreos/ignition/internal/oem/linuxkit"
 	"github.com/coreos/ignition/internal/providers"
 )
 
@@ -43,6 +44,8 @@ func Get(opts Options) (config Config, ok bool) {
 	case "coreos":
 		config, ok = coreos.Config.Get(opts.Name).(Config)
 		return
+	case "linuxkit":
+		config, ok = linuxkit.Config.Get(opts.Name).(Config)
 	}
 	return
 }
@@ -59,6 +62,8 @@ func Names(opts Options) (names []string) {
 	switch opts.Platform {
 	case "coreos":
 		names = coreos.Config.Names()
+	case "linuxkit":
+		names = linuxkit.Config.Names()
 	}
 	return
 }
