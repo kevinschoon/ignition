@@ -38,6 +38,7 @@ func main() {
 		root         string
 		stage        stages.Name
 		version      bool
+		list         bool
 	}{}
 
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
@@ -48,11 +49,19 @@ func main() {
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
+	flag.BoolVar(&flags.list, "list-oems", false, "list all oems for the selected platform")
 
 	flag.Parse()
 
 	if flags.version {
 		fmt.Printf("%s\n", version.String)
+		return
+	}
+
+	if flags.list {
+		for _, name := range oem.Names(flags.oem) {
+			fmt.Fprintln(os.Stdout, name)
+		}
 		return
 	}
 
